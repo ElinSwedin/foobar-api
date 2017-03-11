@@ -20,7 +20,7 @@ class Account(UUIDModel, TimeStampedModel):
     @property
     def isComplete(self):
         return bool(self.email)
-    
+
     def __str__(self):
         return str(self.id)
 

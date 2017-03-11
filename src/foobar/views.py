@@ -4,22 +4,22 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from . import api
 from django.shortcuts import render
-from .forms import CorrectionForm, DepositForm, editProfileForm
+from .forms import CorrectionForm, DepositForm, EditProfileForm
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from foobar.wallet.api import get_wallet
 from django.core import signing
-from django.template import loader
 
 
 @staff_member_required
 @permission_required('foobar.change_account')
 def account_for_card(request, card_id):
-    account_obj = api.get_account(card_id)
+    account_obj = api.get_account_card(card_id)
     if account_obj is None:
         messages.add_message(request, messages.ERROR,
                              _('No account has been found for given card.'))
         return redirect('admin:foobar_account_changelist')
+
     return redirect('admin:foobar_account_change', account_obj.id)
 
 
@@ -62,9 +62,9 @@ def wallet_management(request, obj_id):
                    'form_class': form_class,
                    'form_class1': form_class1})
 
+
 def edit_profile(request, token):
-    content = loader.get_template('profile/success.html')
-    form_class = editProfileForm(request.POST or None)
+    form_class = EditProfileForm(request.POST or None)
     list(messages.get_messages(request))
     try:
         token = signing.loads(token, max_age=1800)
@@ -75,17 +75,13 @@ def edit_profile(request, token):
         if 'save_changes' in request.POST:
             if form_class.is_valid():
                 api.set_account(token.get('id'),
-                                form_class.cleaned_data['name'],
-                                form_class.cleaned_data['email'])
+                                name=form_class.cleaned_data['name'],
+                                email=form_class.cleaned_data['email'])
                 messages.add_message(request, messages.INFO,
                                      'Successfully Saved')
                 return HttpResponseRedirect(request.path)
 
-    account = api.get_account_new(token.get('id'))
-    form_class = editProfileForm(initial={'name': account.name, 'email': account.email})
+    account = api.get_account(token.get('id'))
+    form_class = EditProfileForm(initial={'name': account.name,
+                                          'email': account.email})
     return render(request, "profile/success.html", {'form': form_class})
-
-
-
-
-

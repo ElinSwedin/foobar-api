@@ -1,12 +1,12 @@
 {% extends 'profile/base_profile.html' %}
 {% block content %}
-
+	<div style="width:100%; height:30px;">
 	{% if messages %}	
 		{% for message in messages %}
 				<div class="info">{{ message }}</div>
 		{% endfor %}
 	{% endif %}
-
+	</div>
 	<form class="account_form" method="post" action="">
 		{% csrf_token %} 
 		{{ form }}

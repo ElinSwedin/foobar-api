@@ -6,6 +6,7 @@ from django.urls import reverse
 from wallet.tests.factories import WalletFactory, WalletTrxFactory
 from wallet.enums import TrxType
 from . import factories
+from django.core import signing
 
 
 class FoobarViewTest(TestCase):
@@ -23,7 +24,7 @@ class FoobarViewTest(TestCase):
             password=self.TESTUSER_PASS
         )
 
-    @mock.patch('foobar.api.get_account')
+    @mock.patch('foobar.api.get_account_card')
     def test_account_for_card(self, mock_get_account):
         url = reverse('account_for_card', kwargs={'card_id': 1337})
         mock_get_account.return_value = None
@@ -67,24 +68,53 @@ class FoobarViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         # Test that correction form post is correct and
         # calls function with correct params
-        response = cl.post(url,
-                           {'save_correction': ['Submit'],
-                            'balance_1': ['SEK'],
-                            'comment': ['test'],
-                            'balance_0': ['1000']})
+        cl.post(url,
+                {'save_correction': ['Submit'],
+                 'balance_1': ['SEK'],
+                 'comment': ['test'],
+                 'balance_0': ['1000']})
         mock_correction.assert_called_with(Money(1000, 'SEK'),
                                            wallet_obj.owner_id,
                                            self.user,
                                            'test')
         # Test that deposit or withdrawal form post is correct and
         # calls fucnction with correct params
-        response = cl.post(url,
-                           {'deposit_or_withdrawal_1': ['SEK'],
-                            'save_deposit': ['Submit'],
-                            'comment': ['test'],
-                            'deposit_or_withdrawal_0': ['100']})
+        cl.post(url,
+                {'deposit_or_withdrawal_1': ['SEK'],
+                 'save_deposit': ['Submit'],
+                 'comment': ['test'],
+                 'deposit_or_withdrawal_0': ['100']})
         mock_deposit_withdrawal.assert_called_with(
             Money(100, 'SEK'),
             wallet_obj.owner_id,
             self.user,
             'test')
+
+    @mock.patch('foobar.api.set_account')
+    def test_edit_profile(self, mock_set_account):
+        account_obj = factories.AccountFactory.create()
+        token = signing.dumps({'id': str(account_obj.id)})
+        url = reverse('edit_profile', kwargs={'token': token})
+        bad_token = reverse('edit_profile', kwargs={'token': 'bad'})
+        cl = self.client
+        response1 = cl.get(url)
+        response2 = cl.get(bad_token)
+
+        # Assert that page can be found
+        self.assertEqual(response1.status_code, 200)
+        self.assertEqual(response2.status_code, 200)
+
+        # Assure set_account not called when url with bad token send POST
+        cl.post(bad_token, {'name': 'foo',
+                            'email': 'test@test.com',
+                            'save_changes': ['Submit']})
+        mock_set_account.assert_not_called()
+
+        # Assure set_balance is called when token is valid
+        token_data = signing.loads(token, max_age=1800)
+        cl.post(url, {'name': 'foo',
+                      'email': 'test@test.com',
+                      'save_changes': ['Submit']})
+        mock_set_account.assert_called_with(token_data.get('id'),
+                                            name='foo',
+                                            email='test@test.com')

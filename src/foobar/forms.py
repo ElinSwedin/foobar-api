@@ -24,6 +24,7 @@ class DepositForm(forms.Form):
             raise forms.ValidationError(_('Not enough funds'))
         return data
 
-class editProfileForm(forms.Form):
+
+class EditProfileForm(forms.Form):
     name = forms.CharField(label="Account Name", max_length=128)
     email = forms.EmailField(label="E-mail")
