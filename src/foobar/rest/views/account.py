@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from authtoken.permissions import HasTokenScope
 
+
 import foobar.api
 
 from ..serializers.account import AccountQuerySerializer, AccountSerializer

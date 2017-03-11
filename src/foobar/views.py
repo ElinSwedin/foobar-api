@@ -4,10 +4,12 @@ from django.shortcuts import redirect
 from django.utils.translation import ugettext_lazy as _
 from . import api
 from django.shortcuts import render
-from .forms import CorrectionForm, DepositForm
+from .forms import CorrectionForm, DepositForm, editProfileForm
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from foobar.wallet.api import get_wallet
+from django.core import signing
+from django.template import loader
 
 
 @staff_member_required
@@ -59,3 +61,31 @@ def wallet_management(request, obj_id):
                   {'wallet': wallet,
                    'form_class': form_class,
                    'form_class1': form_class1})
+
+def edit_profile(request, token):
+    content = loader.get_template('profile/success.html')
+    form_class = editProfileForm(request.POST or None)
+    list(messages.get_messages(request))
+    try:
+        token = signing.loads(token, max_age=1800)
+    except signing.BadSignature:
+        return render(request, "profile/bad_request.html")
+
+    if request.method == 'POST':
+        if 'save_changes' in request.POST:
+            if form_class.is_valid():
+                api.set_account(token.get('id'),
+                                form_class.cleaned_data['name'],
+                                form_class.cleaned_data['email'])
+                messages.add_message(request, messages.INFO,
+                                     'Successfully Saved')
+                return HttpResponseRedirect(request.path)
+
+    account = api.get_account_new(token.get('id'))
+    form_class = editProfileForm(initial={'name': account.name, 'email': account.email})
+    return render(request, "profile/success.html", {'form': form_class})
+
+
+
+
+

@@ -22,11 +22,23 @@ def get_card(card_id):
     except Card.DoesNotExist:
         return None
 
+def get_account_new(account_id):
+    try:
+        return Account.objects.get(id=account_id)
+    except Account.DoesNotExist:
+        return None
 
 def get_account(card_id):
     card_obj = get_card(card_id)
     if card_obj is not None:
         return card_obj.account
+
+def set_account(account_id, name, email):
+    qs = Account.objects.get(id=account_id)
+    if name:
+        qs.name = name
+    qs.email = email
+    qs.save()
 
 
 @transaction.atomic

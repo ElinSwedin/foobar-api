@@ -1,0 +1,16 @@
+{% extends 'profile/base_profile.html' %}
+{% block content %}
+
+	{% if messages %}	
+		{% for message in messages %}
+				<div class="info">{{ message }}</div>
+		{% endfor %}
+	{% endif %}
+
+	<form class="account_form" method="post" action="">
+		{% csrf_token %} 
+		{{ form }}
+		<input type="submit" name="save_changes" value="Save" id="submit_changes" value="{{ account_email }}">
+	</form>
+
+{% endblock %}
