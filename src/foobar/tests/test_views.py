@@ -24,7 +24,7 @@ class FoobarViewTest(TestCase):
             password=self.TESTUSER_PASS
         )
 
-    @mock.patch('foobar.api.get_account_card')
+    @mock.patch('foobar.api.get_account_by_card')
     def test_account_for_card(self, mock_get_account):
         url = reverse('account_for_card', kwargs={'card_id': 1337})
         mock_get_account.return_value = None
@@ -90,8 +90,8 @@ class FoobarViewTest(TestCase):
             self.user,
             'test')
 
-    @mock.patch('foobar.api.set_account')
-    def test_edit_profile(self, mock_set_account):
+    @mock.patch('foobar.api.update_account')
+    def test_edit_profile(self, mock_update_account):
         account_obj = factories.AccountFactory.create()
         token = signing.dumps({'id': str(account_obj.id)})
         url = reverse('edit_profile', kwargs={'token': token})
@@ -104,17 +104,17 @@ class FoobarViewTest(TestCase):
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(response2.status_code, 200)
 
-        # Assure set_account not called when url with bad token send POST
+        # Assure update_account not called when url with bad token send POST
         cl.post(bad_token, {'name': 'foo',
                             'email': 'test@test.com',
                             'save_changes': ['Submit']})
-        mock_set_account.assert_not_called()
+        mock_update_account.assert_not_called()
 
         # Assure set_balance is called when token is valid
         token_data = signing.loads(token, max_age=1800)
         cl.post(url, {'name': 'foo',
                       'email': 'test@test.com',
                       'save_changes': ['Submit']})
-        mock_set_account.assert_called_with(token_data.get('id'),
-                                            name='foo',
-                                            email='test@test.com')
+        mock_update_account.assert_called_with(token_data.get('id'),
+                                               name='foo',
+                                               email='test@test.com')

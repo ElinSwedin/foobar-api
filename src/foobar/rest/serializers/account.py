@@ -19,7 +19,7 @@ class AccountSerializer(serializers.Serializer):
     balance = serializers.SerializerMethodField()
     token = serializers.SerializerMethodField()
 
-    isComplete = serializers.BooleanField(read_only=True)
+    is_complete = serializers.BooleanField(read_only=True)
 
 
 class AccountQuerySerializer(serializers.Serializer):

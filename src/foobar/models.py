@@ -18,7 +18,7 @@ class Account(UUIDModel, TimeStampedModel):
     email = models.EmailField(null=True, blank=True)
 
     @property
-    def isComplete(self):
+    def is_complete(self):
         return bool(self.email)
 
     def __str__(self):

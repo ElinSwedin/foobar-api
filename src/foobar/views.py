@@ -14,7 +14,7 @@ from django.core import signing
 @staff_member_required
 @permission_required('foobar.change_account')
 def account_for_card(request, card_id):
-    account_obj = api.get_account_card(card_id)
+    account_obj = api.get_account_by_card(card_id)
     if account_obj is None:
         messages.add_message(request, messages.ERROR,
                              _('No account has been found for given card.'))
@@ -40,7 +40,7 @@ def wallet_management(request, obj_id):
                 )
                 messages.add_message(request,
                                      messages.INFO,
-                                     'Correction was successfully saved.')
+                                     _('Correction was successfully saved.'))
                 return HttpResponseRedirect(request.path)
 
         elif 'save_deposit' in request.POST:
@@ -53,7 +53,7 @@ def wallet_management(request, obj_id):
                 )
                 messages.add_message(request,
                                      messages.INFO,
-                                     'Successfully saved.')
+                                     _('Successfully saved.'))
                 return HttpResponseRedirect(request.path)
 
     return render(request,
@@ -65,21 +65,19 @@ def wallet_management(request, obj_id):
 
 def edit_profile(request, token):
     form_class = EditProfileForm(request.POST or None)
-    list(messages.get_messages(request))
     try:
         token = signing.loads(token, max_age=1800)
     except signing.BadSignature:
         return render(request, "profile/bad_request.html")
 
     if request.method == 'POST':
-        if 'save_changes' in request.POST:
-            if form_class.is_valid():
-                api.set_account(token.get('id'),
-                                name=form_class.cleaned_data['name'],
-                                email=form_class.cleaned_data['email'])
-                messages.add_message(request, messages.INFO,
-                                     'Successfully Saved')
-                return HttpResponseRedirect(request.path)
+        if form_class.is_valid():
+            api.update_account(token.get('id'),
+                               name=form_class.cleaned_data['name'],
+                               email=form_class.cleaned_data['email'])
+            messages.add_message(request, messages.INFO,
+                                 _('Successfully Saved'))
+            return HttpResponseRedirect(request.path)
 
     account = api.get_account(token.get('id'))
     form_class = EditProfileForm(initial={'name': account.name,

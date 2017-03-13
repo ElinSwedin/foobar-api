@@ -5,8 +5,10 @@ from django.utils.translation import ugettext as _
 
 
 class CorrectionForm(forms.Form):
-    balance = MoneyField(label='Balance', min_value=0)
-    comment = forms.CharField(label='Comment', max_length=128, required=False)
+    balance = MoneyField(label=_('Balance'), min_value=0)
+    comment = forms.CharField(label=_('Comment'),
+                              max_length=128,
+                              required=False)
 
 
 class DepositForm(forms.Form):
@@ -26,5 +28,5 @@ class DepositForm(forms.Form):
 
 
 class EditProfileForm(forms.Form):
-    name = forms.CharField(label="Account Name", max_length=128)
-    email = forms.EmailField(label="E-mail")
+    name = forms.CharField(label=_("Account Name"), max_length=128)
+    email = forms.EmailField(label=_("E-mail"))

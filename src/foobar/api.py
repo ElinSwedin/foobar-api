@@ -30,13 +30,13 @@ def get_account(account_id):
         return None
 
 
-def get_account_card(card_id):
+def get_account_by_card(card_id):
     card_obj = get_card(card_id)
     if card_obj is not None:
         return card_obj.account
 
 
-def set_account(account_id, **kwargs):
+def update_account(account_id, **kwargs):
     Account.objects.filter(id=account_id).update(**kwargs)
 
 
