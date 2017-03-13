@@ -18,7 +18,6 @@ class AccountSerializer(serializers.Serializer):
     name = serializers.CharField(read_only=True)
     balance = serializers.SerializerMethodField()
     token = serializers.SerializerMethodField()
-
     is_complete = serializers.BooleanField(read_only=True)
 
 

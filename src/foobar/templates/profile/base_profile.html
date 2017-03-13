@@ -7,8 +7,9 @@
         <link rel="stylesheet" type="text/css" href="/static/css/profile.css"/>
     </head>
     <body>
+        {% load i18n %} 
         <div id="header" >
-            Profile Details
+            {% trans "Profile Details" %} 
         </div>
         {% block content %}
         {% endblock %}
